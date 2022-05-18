@@ -11,9 +11,9 @@ import static net.edubovit.life.Balance.GROW_FOOD_PERIOD;
 
 public class LifeApplication extends Application {
 
-    public static final int WIDTH = 2400;
+    private static final int DEFAULT_WIDTH = 500;
 
-    public static final int HEIGHT = 1200;
+    private static final int DEFAULT_HEIGHT = 500;
 
     private int clickMode = 1;
 
@@ -23,8 +23,12 @@ public class LifeApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        var lifeView = new PixelLifeView(WIDTH, HEIGHT);
-        var lifeField = new LifeField(WIDTH, HEIGHT, lifeView);
+        String widthParameter = getParameters().getNamed().get("width");
+        String heightParameter = getParameters().getNamed().get("height");
+        int width = widthParameter == null || widthParameter.isBlank() ? DEFAULT_WIDTH : Integer.parseInt(widthParameter);
+        int height = heightParameter == null || heightParameter.isBlank() ? DEFAULT_HEIGHT : Integer.parseInt(heightParameter);
+        var lifeView = new PixelLifeView(width, height);
+        var lifeField = new LifeField(width, height, lifeView);
         lifeField.redrawAll();
 
         var pane = lifeView.pane();
