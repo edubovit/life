@@ -8,7 +8,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static net.edubovit.life.Balance.*;
+import static net.edubovit.life.Balance.GROW_FOOD_PERIOD;
+import static net.edubovit.life.Balance.INITIAL_FOOD;
+import static net.edubovit.life.Balance.MAX_NECRO;
+import static net.edubovit.life.Balance.NECRO_DECAY_PERIOD;
+import static net.edubovit.life.Balance.NECRO_INCREASE;
+import static net.edubovit.life.utils.Random.RANDOM;
 
 public class LifeField {
 
@@ -95,7 +100,8 @@ public class LifeField {
         Arrays.stream(matrix)
                 .flatMap(Arrays::stream)
                 .forEach(cell -> {
-                    if (cell.getFood() < Balance.MAX_FOOD - cell.getNecro()) {
+                    if (cell.getFood() < Balance.MAX_FOOD - cell.getNecro()
+                            && RANDOM.nextFloat() < 1.0f / GROW_FOOD_PERIOD) {
                         cell.incFood();
                         lifeView.draw(cell);
                     }
@@ -106,15 +112,19 @@ public class LifeField {
         Arrays.stream(matrix)
                 .flatMap(Arrays::stream)
                 .forEach(cell -> {
-                    if (cell.getNecro() > 0) {
+                    if (cell.getNecro() > 0 && RANDOM.nextFloat() < 1.0f / NECRO_DECAY_PERIOD) {
                         cell.decNecro();
-                        lifeView.draw( cell);
+                        lifeView.draw(cell);
                     }
                 });
     }
 
     public void flushView() {
         lifeView.flush();
+    }
+
+    public void renderStatistics(float tps, int entities) {
+        lifeView.renderStatistics(tps, entities);
     }
 
     private List<Cell> getNeighbours(Cell cell) {

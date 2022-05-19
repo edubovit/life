@@ -6,6 +6,7 @@ import net.edubovit.life.MovementResult;
 
 import java.util.List;
 
+import static java.lang.Math.min;
 import static java.util.Comparator.comparingInt;
 import static net.edubovit.life.entity.EntityType.HUNTER;
 import static net.edubovit.life.entity.EntityType.NECROPHAGE;
@@ -18,25 +19,26 @@ public class Necrophage extends Entity {
 
     private static final int HEALTH_STARVATION = 10;
 
-    private static final float HEALTH_ESCAPE_BASIS = 40;
+    private static final float HEALTH_ESCAPE_BASIS = 40f;
 
     private static final int HEALTH_FROM_NECRO = 5;
 
     private static final int LIFE_EXPECTANCY_FROM_NECRO = 25;
 
-    private static final int HEALTH_MOVE_THRESHOLD = 2;
+    private static final int HEALTH_MOVE_THRESHOLD = 3;
 
     private static final int HEALTH_BORN_THRESHOLD = 40;
 
     private static final int HEALTH_BORN_COST = 30;
 
-    private static final float CHANCE_BORN_SIMPLE = 0.002f;
-
-    private static final float CHANCE_BORN_HUNTER = 0.001f;
-
     private static final int AGE_OLD_PERCENTAGE = 50;
 
     private int lifeExpectancy = 100;
+
+    private static final ChildProbability[] childProbabilities = new ChildProbability[] {
+            new ChildProbability(HUNTER, 1e-3f),
+            new ChildProbability(SIMPLE, 2e-3f)
+    };
 
     public Necrophage(Cell cell) {
         super(cell);
@@ -47,14 +49,10 @@ public class Necrophage extends Entity {
         if (cell.getNecro() > 0) {
             cell.decNecro();
             lifeExpectancy += LIFE_EXPECTANCY_FROM_NECRO;
-            health += HEALTH_FROM_NECRO;
-            int maxHealth = maxHealth();
-            if (health > maxHealth) {
-                health = maxHealth;
-            }
+            health = min(health + HEALTH_FROM_NECRO, maxHealth());
         } else if (cell.getFood() > 0) {
             cell.decFood();
-            if (health < HEALTH_STARVATION) {
+            if (health < HEALTH_STARVATION && health < maxHealth()) {
                 health++;
             }
         } else {
@@ -74,14 +72,7 @@ public class Necrophage extends Entity {
     @Override
     public EntityType doBorn() {
         health -= HEALTH_BORN_COST;
-        float roll = RANDOM.nextFloat();
-        if (roll < CHANCE_BORN_HUNTER) {
-            return HUNTER;
-        } else if (roll < CHANCE_BORN_SIMPLE) {
-            return SIMPLE;
-        } else {
-            return NECROPHAGE;
-        }
+        return child();
     }
 
     @Override
@@ -110,17 +101,8 @@ public class Necrophage extends Entity {
     public Cell canEscape() {
         if (health < HEALTH_MOVE_THRESHOLD) {
             return null;
-        }
-        var escapeWays = cell.getNeighbours()
-                .stream()
-                .filter(escape -> !escape.hasEntity())
-                .toList();
-        if (escapeWays.isEmpty()) {
-            return null;
-        } else if (escapeWays.size() == 1) {
-            return escapeWays.get(0);
         } else {
-            return escapeWays.get(RANDOM.nextInt(escapeWays.size()));
+            return chooseRandomVacantDirection();
         }
     }
 
@@ -142,6 +124,11 @@ public class Necrophage extends Entity {
     @Override
     public EntityType getType() {
         return NECROPHAGE;
+    }
+
+    @Override
+    protected ChildProbability[] childProbabilities() {
+        return childProbabilities;
     }
 
     private int maxHealth() {

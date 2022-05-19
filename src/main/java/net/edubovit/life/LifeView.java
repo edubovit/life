@@ -10,4 +10,6 @@ public interface LifeView {
 
     void flush();
 
+    void renderStatistics(float tps, int entities);
+
 }

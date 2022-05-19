@@ -30,6 +30,8 @@ public class Hunter extends Entity {
 
     private static final int AGE_OLD = 50;
 
+    private static final ChildProbability[] childProbabilities = new ChildProbability[] {};
+
     public Hunter(Cell cell) {
         super(cell);
     }
@@ -58,7 +60,7 @@ public class Hunter extends Entity {
     @Override
     public EntityType doBorn() {
         health -= HEALTH_BORN_COST;
-        return HUNTER;
+        return child();
     }
 
     @Override
@@ -129,6 +131,11 @@ public class Hunter extends Entity {
     @Override
     public EntityType getType() {
         return HUNTER;
+    }
+
+    @Override
+    protected ChildProbability[] childProbabilities() {
+        return childProbabilities;
     }
 
     private int maxHealth() {

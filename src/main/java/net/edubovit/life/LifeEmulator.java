@@ -1,7 +1,5 @@
 package net.edubovit.life;
 
-import static net.edubovit.life.Balance.*;
-
 public class LifeEmulator implements Runnable {
 
     private final LifeField lifeField;
@@ -19,8 +17,8 @@ public class LifeEmulator implements Runnable {
         var entities = lifeField.getEntities();
         if (cycle % 100 == 0) {
             long now = System.currentTimeMillis();
-            float fps = 1e5f / (now - time);
-            System.out.printf("Cycle %d, %d entities, %.1f fps%n", cycle, entities.size(), fps);
+            float tps = 1e5f / (now - time);
+            lifeField.renderStatistics(tps, entities.size());
             time = now;
         }
         entities.forEach(entity -> entity.doFeed(entity.getCell()));
@@ -46,12 +44,8 @@ public class LifeEmulator implements Runnable {
                 lifeField.killEntity(entity);
             }
         });
-        if (cycle % GROW_FOOD_PERIOD == 0) {
-            lifeField.growFood();
-        }
-        if (cycle % NECRO_DECAY_PERIOD == 0) {
-            lifeField.necroDecay();
-        }
+        lifeField.growFood();
+        lifeField.necroDecay();
         cycle++;
         lifeField.flushView();
     }

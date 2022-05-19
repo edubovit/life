@@ -1,14 +1,16 @@
 package net.edubovit.life;
 
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.PixelWriter;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.edubovit.life.Balance.GROW_FOOD_PERIOD;
 import static net.edubovit.life.Balance.MAX_FOOD;
 import static net.edubovit.life.Balance.MAX_NECRO;
 
@@ -26,7 +28,7 @@ public class PixelLifeView implements LifeView {
 
     private final Canvas canvas;
 
-    private final GraphicsContext graphicsContext;
+    private final Canvas infoPanel;
 
     private final PixelWriter pixelWriter;
 
@@ -38,9 +40,9 @@ public class PixelLifeView implements LifeView {
         this.width = width;
         this.height = height;
         this.canvas = new Canvas(width, height);
-        this.graphicsContext = canvas.getGraphicsContext2D();
-        this.pixelWriter = graphicsContext.getPixelWriter();
-        this.pane = new Pane(canvas);
+        this.infoPanel = new Canvas(150, height);
+        this.pixelWriter = canvas.getGraphicsContext2D().getPixelWriter();
+        this.pane = new HBox(canvas, infoPanel);
         this.drawQueue = new ArrayList<>(2 * width * height);
     }
 
@@ -58,6 +60,17 @@ public class PixelLifeView implements LifeView {
     public void flush() {
         drawQueue.forEach(this::flush);
         drawQueue.clear();
+    }
+
+    @Override
+    public void renderStatistics(float tps, int entities) {
+        var context = infoPanel.getGraphicsContext2D();
+        context.setFill(Color.WHITE);
+        context.setFont(Font.font("Consolas"));
+        context.fillRect(0, 0, 150, height);
+        context.strokeText(String.format("TPS: %.1f", tps), 10, 20);
+        context.strokeText(String.format("Entities: %d", entities), 10, 50);
+        context.strokeText(String.format("Grow Period: %d", GROW_FOOD_PERIOD), 10, 80);
     }
 
     private void flush(Cell cell) {

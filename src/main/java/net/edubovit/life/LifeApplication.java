@@ -7,6 +7,7 @@ import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import net.edubovit.life.entity.EntityType;
 
+import static java.lang.Math.max;
 import static net.edubovit.life.Balance.GROW_FOOD_PERIOD;
 
 public class LifeApplication extends Application {
@@ -47,13 +48,13 @@ public class LifeApplication extends Application {
                 System.out.println("GROW_FOOD_PERIOD is now " + GROW_FOOD_PERIOD);
             } else if (event.getCode() == KeyCode.SUBTRACT) {
                 if (event.isShiftDown() && event.isControlDown()) {
-                    GROW_FOOD_PERIOD -= 1000;
+                    GROW_FOOD_PERIOD = max(1, GROW_FOOD_PERIOD - 1000);
                 } else if (event.isShiftDown()) {
-                    GROW_FOOD_PERIOD -= 100;
+                    GROW_FOOD_PERIOD = max(1, GROW_FOOD_PERIOD - 100);
                 } else if (event.isControlDown()) {
-                    GROW_FOOD_PERIOD -= 10;
+                    GROW_FOOD_PERIOD = max(1, GROW_FOOD_PERIOD - 10);
                 } else {
-                    GROW_FOOD_PERIOD -= 1;
+                    GROW_FOOD_PERIOD = max(1, GROW_FOOD_PERIOD - 1);
                 }
                 System.out.println("GROW_FOOD_PERIOD is now " + GROW_FOOD_PERIOD);
             } else if (event.getCode() == KeyCode.DIGIT1) {
@@ -65,10 +66,15 @@ public class LifeApplication extends Application {
             } else if (event.getCode() == KeyCode.DIGIT3) {
                 clickMode = 3;
                 System.out.println("clickMode is now 3");
+            } else if (event.getCode() == KeyCode.DIGIT4) {
+                clickMode = 4;
+                System.out.println("clickMode is now 4");
             }
         });
         scene.setOnMouseClicked(event -> {
-            lifeField.bornEntity((int) Math.round(event.getX()), (int) Math.round(event.getY()), EntityType.byDigit(clickMode));
+            if (event.getX() < width && event.getY() < height) {
+                lifeField.bornEntity((int) Math.round(event.getX()), (int) Math.round(event.getY()), EntityType.byDigit(clickMode));
+            }
         });
         primaryStage.setScene(scene);
         primaryStage.show();

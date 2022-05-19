@@ -33,6 +33,10 @@ public class Cell {
         food--;
     }
 
+    public void decFood(int amount) {
+        food -= amount;
+    }
+
     public void decNecro() {
         necro--;
     }

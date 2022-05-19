@@ -7,6 +7,7 @@ import net.edubovit.life.MovementResult;
 import java.util.List;
 
 import static java.util.Comparator.comparingInt;
+import static net.edubovit.life.entity.EntityType.CRAZY;
 import static net.edubovit.life.entity.EntityType.HUNTER;
 import static net.edubovit.life.entity.EntityType.NECROPHAGE;
 import static net.edubovit.life.entity.EntityType.SIMPLE;
@@ -24,13 +25,15 @@ public class SimpleEntity extends Entity {
 
     private static final int HEALTH_BORN_COST = 10;
 
-    private static final float CHANCE_BORN_NECROPHAGE = 0.0001f;
-
-    private static final float CHANCE_BORN_HUNTER = 0.000001f;
-
     private static final int AGE_DEATH = 100;
 
     private static final int AGE_OLD = 60;
+
+    private static final ChildProbability[] childProbabilities = new ChildProbability[] {
+            new ChildProbability(HUNTER, 1e-6f),
+            new ChildProbability(CRAZY, 2e-5f),
+            new ChildProbability(NECROPHAGE, 1e-4f)
+    };
 
     public SimpleEntity(Cell cell) {
         super(cell);
@@ -40,10 +43,8 @@ public class SimpleEntity extends Entity {
     public void doFeed(Cell cell) {
         if (cell.getFood() > 0) {
             cell.decFood();
-            health++;
-            int maxHealth = maxHealth();
-            if (health > maxHealth) {
-                health = maxHealth;
+            if (health < maxHealth()) {
+                health++;
             }
         } else {
             health--;
@@ -62,14 +63,7 @@ public class SimpleEntity extends Entity {
     @Override
     public EntityType doBorn() {
         health -= HEALTH_BORN_COST;
-        float roll = RANDOM.nextFloat();
-        if (roll < CHANCE_BORN_HUNTER) {
-            return HUNTER;
-        } else if (roll < CHANCE_BORN_NECROPHAGE) {
-            return NECROPHAGE;
-        } else {
-            return SIMPLE;
-        }
+        return child();
     }
 
     @Override
@@ -95,17 +89,8 @@ public class SimpleEntity extends Entity {
     public Cell canEscape() {
         if (health < HEALTH_MOVE_THRESHOLD) {
             return null;
-        }
-        var escapeWays = cell.getNeighbours()
-                .stream()
-                .filter(escape -> !escape.hasEntity())
-                .toList();
-        if (escapeWays.isEmpty()) {
-            return null;
-        } else if (escapeWays.size() == 1) {
-            return escapeWays.get(0);
         } else {
-            return escapeWays.get(RANDOM.nextInt(escapeWays.size()));
+            return chooseRandomVacantDirection();
         }
     }
 
@@ -127,6 +112,11 @@ public class SimpleEntity extends Entity {
     @Override
     public EntityType getType() {
         return SIMPLE;
+    }
+
+    @Override
+    protected ChildProbability[] childProbabilities() {
+        return childProbabilities;
     }
 
     private int maxHealth() {
