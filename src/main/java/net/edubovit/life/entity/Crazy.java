@@ -4,10 +4,11 @@ import javafx.scene.paint.Color;
 import net.edubovit.life.Cell;
 import net.edubovit.life.MovementResult;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import static java.lang.Math.min;
 import static net.edubovit.life.entity.EntityType.CRAZY;
 import static net.edubovit.life.entity.EntityType.SIMPLE;
-import static net.edubovit.life.utils.Random.RANDOM;
 
 public class Crazy extends Entity {
 
@@ -51,7 +52,8 @@ public class Crazy extends Entity {
 
     @Override
     public Cell decideBorn() {
-        if (health >= HEALTH_BORN_THRESHOLD && (health == maxHealth() || RANDOM.nextFloat() < bornProbability())) {
+        if (health >= HEALTH_BORN_THRESHOLD
+                && (health == maxHealth() || ThreadLocalRandom.current().nextFloat() < bornProbability())) {
             return chooseRandomVacantDirection();
         } else {
             return null;

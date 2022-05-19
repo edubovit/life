@@ -52,7 +52,7 @@ public class PixelLifeView implements LifeView {
     }
 
     @Override
-    public void draw(Cell cell) {
+    public synchronized void draw(Cell cell) {
         drawQueue.add(cell);
     }
 

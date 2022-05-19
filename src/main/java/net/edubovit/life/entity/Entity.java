@@ -5,7 +5,7 @@ import lombok.Data;
 import net.edubovit.life.Cell;
 import net.edubovit.life.MovementResult;
 
-import static net.edubovit.life.utils.Random.RANDOM;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Data
 public abstract class Entity {
@@ -47,7 +47,7 @@ public abstract class Entity {
     protected abstract ChildProbability[] childProbabilities();
 
     protected EntityType child() {
-        float roll = RANDOM.nextFloat();
+        float roll = ThreadLocalRandom.current().nextFloat();
         for (var childProbability : childProbabilities()) {
             if (roll < childProbability.probability) {
                 return childProbability.type;
@@ -66,7 +66,7 @@ public abstract class Entity {
         } else if (candidates.size() == 1) {
             return candidates.get(0);
         } else {
-            return candidates.get(RANDOM.nextInt(candidates.size()));
+            return candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
         }
     }
 

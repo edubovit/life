@@ -5,10 +5,10 @@ import net.edubovit.life.Cell;
 import net.edubovit.life.MovementResult;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static java.util.Comparator.comparingInt;
 import static net.edubovit.life.entity.EntityType.HUNTER;
-import static net.edubovit.life.utils.Random.RANDOM;
 
 public class Hunter extends Entity {
 
@@ -82,7 +82,9 @@ public class Hunter extends Entity {
         var candidates = scoredNeighbours.stream()
                 .filter(scoredCell -> scoredCell.score == topCandidate.score)
                 .toList();
-        var chosen = candidates.size() == 1 ? candidates.get(0) : candidates.get(RANDOM.nextInt(candidates.size()));
+        var chosen = candidates.size() == 1
+                ? candidates.get(0)
+                : candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
         if (cell.getFood() == 0 || 10 * chosen.score / cell.getFood() > 12) {
             return chosen.cell;
         } else {
@@ -156,7 +158,7 @@ public class Hunter extends Entity {
         }
         float escapeChance = entity.getEscapeChance();
         float tracking = health / HEALTH_TRACK_BASIS;
-        return RANDOM.nextFloat() < tracking / (tracking + escapeChance);
+        return ThreadLocalRandom.current().nextFloat() < tracking / (tracking + escapeChance);
     }
 
     private boolean haveTargetsToHunt() {
@@ -182,7 +184,7 @@ public class Hunter extends Entity {
         if (candidates.size() == 1) {
             return candidates.get(0);
         } else {
-            return candidates.get(RANDOM.nextInt(candidates.size()));
+            return candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
         }
     }
 

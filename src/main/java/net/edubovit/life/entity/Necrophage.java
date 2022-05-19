@@ -5,13 +5,13 @@ import net.edubovit.life.Cell;
 import net.edubovit.life.MovementResult;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.Math.min;
 import static java.util.Comparator.comparingInt;
 import static net.edubovit.life.entity.EntityType.HUNTER;
 import static net.edubovit.life.entity.EntityType.NECROPHAGE;
 import static net.edubovit.life.entity.EntityType.SIMPLE;
-import static net.edubovit.life.utils.Random.RANDOM;
 
 public class Necrophage extends Entity {
 
@@ -156,7 +156,7 @@ public class Necrophage extends Entity {
         if (candidates.size() == 1) {
             return candidates.get(0);
         } else {
-            return candidates.get(RANDOM.nextInt(candidates.size()));
+            return candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
         }
     }
 

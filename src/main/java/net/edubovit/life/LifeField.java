@@ -3,9 +3,9 @@ package net.edubovit.life;
 import net.edubovit.life.entity.Entity;
 import net.edubovit.life.entity.EntityType;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
 import static net.edubovit.life.Balance.GROW_FOOD_PERIOD;
@@ -13,7 +13,7 @@ import static net.edubovit.life.Balance.INITIAL_FOOD;
 import static net.edubovit.life.Balance.MAX_NECRO;
 import static net.edubovit.life.Balance.NECRO_DECAY_PERIOD;
 import static net.edubovit.life.Balance.NECRO_INCREASE;
-import static net.edubovit.life.utils.Random.RANDOM;
+import static net.edubovit.life.Configuration.SEPARATION_FACTOR;
 
 public class LifeField {
 
@@ -25,20 +25,27 @@ public class LifeField {
 
     private final Cell[][] matrix;
 
+    private final ExecutionArray<Cell> separatedCells;
+
     public LifeField(int width, int height, LifeView lifeView) {
         this.width = width;
         this.height = height;
         this.lifeView = lifeView;
         this.matrix = new Cell[width][height];
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
+        this.separatedCells = new ExecutionArray<>(SEPARATION_FACTOR * SEPARATION_FACTOR,
+                (width * height) / (SEPARATION_FACTOR * SEPARATION_FACTOR) + 1);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 var cell = new Cell(x, y);
                 cell.setFood(INITIAL_FOOD);
                 matrix[x][y] = cell;
+                separatedCells.getArray()
+                        .get(SEPARATION_FACTOR * (y % SEPARATION_FACTOR) + x % SEPARATION_FACTOR)
+                        .add(cell);
             }
         }
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 var cell = matrix[x][y];
                 cell.setNeighbours(getNeighbours(cell));
             }
@@ -52,13 +59,8 @@ public class LifeField {
         return matrix[x][y];
     }
 
-    public List<Entity> getEntities() {
-        return Arrays.stream(matrix)
-                .flatMap(Arrays::stream)
-                .filter(Cell::hasEntity)
-                .map(Cell::getEntity)
-                .parallel()
-                .toList();
+    public ExecutionArray<Entity> getEntities() {
+        return separatedCells.map(Cell::hasEntity, Cell::getEntity);
     }
 
     public void redraw(Cell cell) {
@@ -97,11 +99,9 @@ public class LifeField {
     }
 
     public void growFood() {
-        Arrays.stream(matrix)
-                .flatMap(Arrays::stream)
-                .forEach(cell -> {
+        separatedCells.forEach(cell -> {
                     if (cell.getFood() < Balance.MAX_FOOD - cell.getNecro()
-                            && RANDOM.nextFloat() < 1.0f / GROW_FOOD_PERIOD) {
+                            && ThreadLocalRandom.current().nextFloat() < 1.0f / GROW_FOOD_PERIOD) {
                         cell.incFood();
                         lifeView.draw(cell);
                     }
@@ -109,10 +109,8 @@ public class LifeField {
     }
 
     public void necroDecay() {
-        Arrays.stream(matrix)
-                .flatMap(Arrays::stream)
-                .forEach(cell -> {
-                    if (cell.getNecro() > 0 && RANDOM.nextFloat() < 1.0f / NECRO_DECAY_PERIOD) {
+        separatedCells.forEach(cell -> {
+                    if (cell.getNecro() > 0 && ThreadLocalRandom.current().nextFloat() < 1.0f / NECRO_DECAY_PERIOD) {
                         cell.decNecro();
                         lifeView.draw(cell);
                     }
